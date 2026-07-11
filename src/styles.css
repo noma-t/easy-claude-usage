@@ -68,30 +68,6 @@ body {
   gap: 7px;
 }
 
-#header-status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--color-border);
-}
-
-#app[data-state="loading"] #header-status-indicator {
-  background-color: var(--color-text-muted);
-}
-
-#app[data-state="ready"] #header-status-indicator {
-  background-color: var(--color-accent);
-}
-
-#app[data-state="error"] #header-status-indicator {
-  background-color: var(--color-text);
-  outline: 2px solid var(--color-border);
-}
-
-#header-status-indicator.has-error {
-  background-color: var(--status-critical);
-}
-
 /* 再取得中(既存の表示は残したまま)であることを示す端のスピナー */
 #refresh-spinner {
   display: none;

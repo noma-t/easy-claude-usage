@@ -6,7 +6,6 @@ const headerElement = document.querySelector("#header");
 const usagePanel = document.querySelector("#usage-panel");
 const usageContent = document.querySelector("#usage-content");
 const errorMessage = document.querySelector("#error-message");
-const headerStatusIndicator = document.querySelector("#header-status-indicator");
 const lastUpdatedElement = document.querySelector("#last-updated");
 
 // ウィンドウの実サイズ(#app)ではなく、中身の自然な高さ(#usage-panelのscrollHeight)を
@@ -26,7 +25,6 @@ const METER_COLOR_BY_SEVERITY = {
 };
 
 let hasContent = false;
-let errorFlashTimer = null;
 
 // ラベルごとに生成済みのメーター行を保持し、更新時はDOM要素を使い回すことで
 // CSSトランジションとパーセント数値のカウントアニメーションを機能させる。
@@ -231,12 +229,6 @@ function setRefreshing(isRefreshing) {
   }
 }
 
-function flashHeaderError() {
-  headerStatusIndicator.classList.add("has-error");
-  clearTimeout(errorFlashTimer);
-  errorFlashTimer = setTimeout(() => headerStatusIndicator.classList.remove("has-error"), 4000);
-}
-
 async function refreshUsage() {
   const isInitialLoad = !hasContent;
 
@@ -263,7 +255,6 @@ async function refreshUsage() {
       resizeToContent();
     } else {
       console.error(err);
-      flashHeaderError();
     }
   } finally {
     setRefreshing(false);
