@@ -92,32 +92,6 @@ body {
   background-color: var(--status-critical);
 }
 
-/* アップデート通知ボタン: 通常は非表示、更新が見つかった時だけ出現する */
-#update-button {
-  display: none;
-  width: 10px;
-  height: 10px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background-color: var(--status-warning);
-  cursor: pointer;
-  -webkit-app-region: no-drag;
-}
-
-#app[data-update-state="available"] #update-button {
-  display: inline-block;
-}
-
-#app[data-update-state="downloading"] #update-button {
-  display: inline-block;
-  cursor: default;
-  animation: usage-spin 0.7s linear infinite;
-  border: 2px solid var(--color-border);
-  border-top-color: var(--status-warning);
-  background-color: transparent;
-}
-
 /* 再取得中(既存の表示は残したまま)であることを示す端のスピナー */
 #refresh-spinner {
   display: none;

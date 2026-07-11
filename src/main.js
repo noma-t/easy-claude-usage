@@ -1,14 +1,11 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
-const { check } = window.__TAURI__.updater;
-const { relaunch } = window.__TAURI__.process;
 
 const appRoot = document.querySelector("#app");
 const usageContent = document.querySelector("#usage-content");
 const errorMessage = document.querySelector("#error-message");
 const headerStatusIndicator = document.querySelector("#header-status-indicator");
 const lastUpdatedElement = document.querySelector("#last-updated");
-const updateButton = document.querySelector("#update-button");
 
 // 「Current session: 34% used · resets Jul 11, 3:30am (Asia/Tokyo)」のような行を拾う。
 // ラベル部分(session / week (all models) / week (Fable) など)を固定リストで持たず、
@@ -160,64 +157,6 @@ async function refreshUsage() {
 }
 
 listen("usage://refresh", refreshUsage);
-
-let pendingUpdate = null;
-
-async function checkForUpdate({ silent } = {}) {
-  if (appRoot.dataset.updateState === "downloading") return;
-
-  try {
-    const update = await check();
-    if (update) {
-      pendingUpdate = update;
-      updateButton.title = `新しいバージョン ${update.version} が利用可能です`;
-      appRoot.dataset.updateState = "available";
-      return;
-    }
-
-    pendingUpdate = null;
-    delete appRoot.dataset.updateState;
-    if (!silent) {
-      updateButton.title = "最新版です";
-      setTimeout(() => {
-        if (!pendingUpdate) updateButton.removeAttribute("title");
-      }, 3000);
-    }
-  } catch (err) {
-    console.error(err);
-    flashHeaderError();
-  }
-}
-
-updateButton.addEventListener("click", async () => {
-  if (!pendingUpdate) return;
-
-  appRoot.dataset.updateState = "downloading";
-  let downloaded = 0;
-  let total = 0;
-
-  try {
-    await pendingUpdate.downloadAndInstall((event) => {
-      if (event.event === "Started") {
-        total = event.data.contentLength ?? 0;
-      } else if (event.event === "Progress") {
-        downloaded += event.data.chunkLength;
-        updateButton.title =
-          total > 0 ? `ダウンロード中... ${Math.round((downloaded / total) * 100)}%` : "ダウンロード中...";
-      } else if (event.event === "Finished") {
-        updateButton.title = "再起動しています...";
-      }
-    });
-    await relaunch();
-  } catch (err) {
-    console.error(err);
-    delete appRoot.dataset.updateState;
-    flashHeaderError();
-  }
-});
-
-listen("update://check", () => checkForUpdate({ silent: false }));
-checkForUpdate({ silent: true });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
