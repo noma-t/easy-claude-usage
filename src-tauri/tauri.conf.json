@@ -21,6 +21,19 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "shadow": true
+      },
+      {
+        "label": "tray-context-menu",
+        "title": "Claude Usage Menu",
+        "url": "tray-context-menu.html",
+        "width": 220,
+        "height": 156,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": true
       }
     ],
     "security": {

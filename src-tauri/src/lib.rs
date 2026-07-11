@@ -13,7 +13,14 @@ pub fn run() {
             None,
         ))
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![commands::get_usage, commands::hide_window])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_usage,
+            commands::hide_window,
+            tray::menu_refresh,
+            tray::menu_toggle_autostart,
+            tray::menu_quit,
+            tray::menu_update_action,
+        ])
         .setup(|app| {
             // 初回起動時はスタートアップ登録をデフォルトで有効化する
             let autostart = app.autolaunch();
