@@ -16,6 +16,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_usage,
             commands::hide_window,
+            commands::resize_window,
             tray::menu_refresh,
             tray::menu_toggle_autostart,
             tray::menu_quit,
