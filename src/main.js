@@ -2,10 +2,17 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 
 const appRoot = document.querySelector("#app");
+const headerElement = document.querySelector("#header");
+const usagePanel = document.querySelector("#usage-panel");
 const usageContent = document.querySelector("#usage-content");
 const errorMessage = document.querySelector("#error-message");
 const headerStatusIndicator = document.querySelector("#header-status-indicator");
 const lastUpdatedElement = document.querySelector("#last-updated");
+
+// ウィンドウの実サイズ(#app)ではなく、中身の自然な高さ(#usage-panelのscrollHeight)を
+// 基準にリサイズする。#usage-panelはflex:1でウィンドウ高に引き伸ばされているため、
+// scrollHeightは表示中の高さに関わらず実コンテンツの高さを返す。
+const APP_BORDER_HEIGHT = 2; // #appのborder-top/bottom(各1px)
 
 // 「Current session: 34% used · resets Jul 11, 3:30am (Asia/Tokyo)」のような行を拾う。
 // ラベル部分(session / week (all models) / week (Fable) など)を固定リストで持たず、
@@ -112,6 +119,11 @@ function renderLastUpdated(date) {
   lastUpdatedElement.textContent = `最終更新: ${time}`;
 }
 
+function resizeToContent() {
+  const contentHeight = headerElement.offsetHeight + usagePanel.scrollHeight + APP_BORDER_HEIGHT;
+  invoke("resize_window", { height: contentHeight }).catch((err) => console.error(err));
+}
+
 function setRefreshing(isRefreshing) {
   if (isRefreshing) {
     appRoot.dataset.refreshing = "true";
@@ -132,6 +144,7 @@ async function refreshUsage() {
   if (isInitialLoad) {
     // まだ一度も表示できていない場合のみ、全体をローディング表示にする。
     appRoot.dataset.state = "loading";
+    resizeToContent();
   } else {
     // 既に表示済みの内容はそのまま残し、端のスピナーだけで取得中を示す。
     setRefreshing(true);
@@ -143,10 +156,12 @@ async function refreshUsage() {
     renderLastUpdated(new Date());
     hasContent = true;
     appRoot.dataset.state = "ready";
+    resizeToContent();
   } catch (err) {
     if (isInitialLoad) {
       errorMessage.textContent = String(err);
       appRoot.dataset.state = "error";
+      resizeToContent();
     } else {
       console.error(err);
       flashHeaderError();
