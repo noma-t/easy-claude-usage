@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Usage</title>
+    <script type="module" src="/main.js" defer></script>
+  </head>
+
+  <body>
+    <div id="app" data-state="loading">
+      <header id="header">
+        <h1 id="header-title">Claude Usage</h1>
+        <div id="header-indicators">
+          <button id="update-button" type="button" aria-hidden="true"></button>
+          <span id="refresh-spinner" aria-hidden="true"></span>
+          <span id="header-status-indicator" aria-hidden="true"></span>
+        </div>
+      </header>
+
+      <main id="usage-panel">
+        <div id="loading-indicator" role="status">取得中...</div>
+        <div id="usage-content"></div>
+        <div id="last-updated" aria-live="polite"></div>
+        <div id="error-message" role="alert"></div>
+      </main>
+    </div>
+  </body>
+</html>
