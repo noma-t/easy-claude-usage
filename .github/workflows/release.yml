@@ -13,6 +13,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -27,6 +29,23 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate changelog
+        id: changelog
+        shell: bash
+        run: |
+          CURRENT_TAG="${{ github.ref_name }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            LOG=$(git log --pretty=format:"- %s (%h)" "$CURRENT_TAG")
+          else
+            LOG=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${CURRENT_TAG}")
+          fi
+          {
+            echo "changelog<<EOF"
+            echo "$LOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -35,7 +54,11 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Claude Usage v__VERSION__"
-          releaseBody: "インストーラー(NSIS)とポータブル版exeを配布しています。"
+          releaseBody: |
+            インストーラー(NSIS)とポータブル版exeを配布しています。
+
+            ## Changelog
+            ${{ steps.changelog.outputs.changelog }}
           releaseDraft: true
           prerelease: false
 
