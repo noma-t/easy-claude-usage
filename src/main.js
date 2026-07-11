@@ -28,6 +28,42 @@ const METER_COLOR_BY_SEVERITY = {
 let hasContent = false;
 let errorFlashTimer = null;
 
+// ラベルごとに生成済みのメーター行を保持し、更新時はDOM要素を使い回すことで
+// CSSトランジションとパーセント数値のカウントアニメーションを機能させる。
+const meterRowsByLabel = new Map();
+
+const PERCENT_ANIMATION_DURATION_MS = 500;
+
+function formatPercent(percent) {
+  return Math.round(percent * 10) / 10;
+}
+
+function animatePercentValue(entry, fromPercent, toPercent) {
+  cancelAnimationFrame(entry.animationFrameId);
+
+  if (fromPercent === toPercent) {
+    entry.value.textContent = `${formatPercent(toPercent)}%`;
+    return;
+  }
+
+  const startTime = performance.now();
+
+  const step = (now) => {
+    const t = Math.min(1, (now - startTime) / PERCENT_ANIMATION_DURATION_MS);
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const current = fromPercent + (toPercent - fromPercent) * eased;
+    entry.value.textContent = `${formatPercent(current)}%`;
+
+    if (t < 1) {
+      entry.animationFrameId = requestAnimationFrame(step);
+    } else {
+      entry.value.textContent = `${formatPercent(toPercent)}%`;
+    }
+  };
+
+  entry.animationFrameId = requestAnimationFrame(step);
+}
+
 function severityForPercent(percent) {
   if (percent >= 90) return "critical";
   if (percent >= 70) return "warning";
@@ -69,7 +105,7 @@ function buildMeterRow(bar) {
 
   const value = document.createElement("span");
   value.className = "usage-meter-value";
-  value.textContent = `${bar.percent}%`;
+  value.textContent = `${formatPercent(bar.percent)}%`;
 
   head.append(label, value);
 
@@ -88,26 +124,89 @@ function buildMeterRow(bar) {
 
   row.append(head, track);
 
+  let resets = null;
   if (bar.resets) {
-    const resets = document.createElement("div");
+    resets = document.createElement("div");
     resets.className = "usage-meter-resets";
     resets.textContent = bar.resets;
     row.appendChild(resets);
   }
 
-  return row;
+  return {
+    row,
+    fill,
+    track,
+    value,
+    resets,
+    percent: bar.percent,
+    animationFrameId: null,
+  };
+}
+
+function updateMeterRow(entry, bar) {
+  const severity = severityForPercent(bar.percent);
+  entry.row.style.setProperty("--meter-color", METER_COLOR_BY_SEVERITY[severity]);
+
+  entry.fill.style.width = `${bar.percent}%`;
+  entry.track.setAttribute("aria-valuenow", String(bar.percent));
+
+  animatePercentValue(entry, entry.percent, bar.percent);
+  entry.percent = bar.percent;
+
+  if (bar.resets) {
+    if (!entry.resets) {
+      entry.resets = document.createElement("div");
+      entry.resets.className = "usage-meter-resets";
+      entry.row.appendChild(entry.resets);
+    }
+    entry.resets.textContent = bar.resets;
+  } else if (entry.resets) {
+    entry.resets.remove();
+    entry.resets = null;
+  }
 }
 
 function renderUsage(text) {
   const bars = parseUsageText(text);
-  usageContent.innerHTML = "";
 
-  const container = document.createElement("div");
-  container.id = "usage-meters";
-  for (const bar of bars) {
-    container.appendChild(buildMeterRow(bar));
+  let container = usageContent.querySelector("#usage-meters");
+  if (!container) {
+    usageContent.innerHTML = "";
+    container = document.createElement("div");
+    container.id = "usage-meters";
+    usageContent.appendChild(container);
   }
-  usageContent.appendChild(container);
+
+  const seenLabels = new Set();
+  let previousRow = null;
+
+  for (const bar of bars) {
+    seenLabels.add(bar.label);
+    let entry = meterRowsByLabel.get(bar.label);
+
+    if (entry) {
+      updateMeterRow(entry, bar);
+    } else {
+      entry = buildMeterRow(bar);
+      meterRowsByLabel.set(bar.label, entry);
+    }
+
+    // 既に正しい位置にある行はappendChildで動かさない。再アペンドすると
+    // ブラウザがノードの再挿入とみなしCSSトランジションが発火しなくなるため。
+    const expectedNextNode = previousRow ? previousRow.nextSibling : container.firstChild;
+    if (entry.row !== expectedNextNode) {
+      container.insertBefore(entry.row, expectedNextNode);
+    }
+    previousRow = entry.row;
+  }
+
+  for (const [label, entry] of meterRowsByLabel) {
+    if (!seenLabels.has(label)) {
+      cancelAnimationFrame(entry.animationFrameId);
+      entry.row.remove();
+      meterRowsByLabel.delete(label);
+    }
+  }
 }
 
 function renderLastUpdated(date) {
