@@ -19,7 +19,29 @@
       </header>
 
       <main id="usage-panel">
-        <div id="loading-indicator" role="status">取得中...</div>
+        <div id="usage-skeleton" role="status">
+          <span class="visually-hidden">使用状況を取得中です</span>
+          <div class="usage-meter usage-meter-skeleton" aria-hidden="true">
+            <div class="usage-meter-head">
+              <span class="usage-meter-label">session</span>
+              <span class="usage-meter-value skeleton-shimmer">--%</span>
+            </div>
+            <div class="usage-meter-track">
+              <div class="usage-meter-fill skeleton-fill"></div>
+            </div>
+            <div class="usage-meter-resets skeleton-shimmer skeleton-line"></div>
+          </div>
+          <div class="usage-meter usage-meter-skeleton" aria-hidden="true">
+            <div class="usage-meter-head">
+              <span class="usage-meter-label">week (all models)</span>
+              <span class="usage-meter-value skeleton-shimmer">--%</span>
+            </div>
+            <div class="usage-meter-track">
+              <div class="usage-meter-fill skeleton-fill"></div>
+            </div>
+            <div class="usage-meter-resets skeleton-shimmer skeleton-line"></div>
+          </div>
+        </div>
         <div id="usage-content"></div>
         <div id="last-updated" aria-live="polite"></div>
         <div id="error-message" role="alert"></div>

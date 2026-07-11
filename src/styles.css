@@ -119,20 +119,99 @@ body {
   padding: 12px 14px;
 }
 
-#loading-indicator,
+#usage-skeleton,
 #usage-content,
 #error-message {
   display: none;
 }
 
-#app[data-state="loading"] #loading-indicator {
-  display: block;
-  color: var(--color-text-muted);
-  font-size: 13px;
+#app[data-state="loading"] #usage-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 #app[data-state="ready"] #usage-content {
   display: block;
+  animation: usage-fade-in 0.25s ease;
+}
+
+@keyframes usage-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* session / week (all models) は常に存在するため、初回ロード中はそれらの形をした
+   プレースホルダーをアニメーションさせ、単なる「取得中...」テキストより
+   何が読み込まれているかがひと目でわかるようにする。 */
+.usage-meter-skeleton .usage-meter-label {
+  color: var(--color-text-muted);
+}
+
+.skeleton-shimmer {
+  color: transparent;
+  border-radius: 3px;
+  background-color: color-mix(in srgb, var(--color-text-muted) 28%, transparent);
+  background-image: linear-gradient(
+    90deg,
+    transparent 25%,
+    color-mix(in srgb, var(--color-text-muted) 55%, transparent) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: usage-shimmer 1.4s ease-in-out infinite;
+}
+
+.usage-meter-skeleton .usage-meter-value {
+  display: inline-block;
+  width: 2.4em;
+}
+
+.usage-meter-skeleton .skeleton-line {
+  display: block;
+  width: 55%;
+  height: 11px;
+  margin-top: 3px;
+}
+
+.usage-meter-skeleton .usage-meter-fill.skeleton-fill {
+  width: 38%;
+  background-color: color-mix(in srgb, var(--color-text-muted) 40%, transparent);
+  animation: usage-indeterminate 1.6s ease-in-out infinite;
+}
+
+@keyframes usage-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes usage-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
 }
 
 #app[data-state="error"] #error-message {
