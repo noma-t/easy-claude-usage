@@ -2,6 +2,8 @@
 
 Windowsのタスクトレイに常駐し、`claude -p "/usage"` の出力をフライアウトUIで表示するTauri v2製デスクトップアプリです。
 
+![スクリーンショット](./ss.png)
+
 ## 開発
 
 ```powershell
